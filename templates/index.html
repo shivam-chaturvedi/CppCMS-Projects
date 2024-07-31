@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .add-button, .submit-button, .clear-button {
+            display: inline-block;
+            margin-top: 10px;
+            margin-bottom: 2%;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+
+
+        .add-button {
+            background-color: #007bff;
+        }
+        .add-button:hover {
+            background-color: #0056b3;
+        }
+        .submit-button {
+            background-color: #28a745;
+        }
+        .submit-button:hover {
+            background-color: #218838;
+        }
+        .clear-button {
+            background-color: #dc3545;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .product-list {
+            margin-top: 20px;
+        }
+        .product-list-container {
+            max-height: 400px; /* Set this to your desired max height */
+            overflow-y: auto;
+        }
+        .product-list table {
+            width: 100%;
+            text-transform: uppercase;
+            font-family: 'Times New Roman', Times, serif;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .product-list th, .product-list td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .product-list th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .product-list tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .product-list tr:hover {
+            background-color: #eaeaea;
+        }
+        .top {
+            width: 90%;
+            padding: 1%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            background-color: white;
+            height: auto;
+        }
+        .message-box {
+            display: none;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('search-input').addEventListener('input', filterProducts);
+            document.querySelector('.add-button').addEventListener('click', showTotal);
+            document.querySelector('.clear-button').addEventListener('click', confirmClear);
+        });
+
+        function toggleForm() {
+            const formContainer = document.getElementById('form-container');
+            formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const productName = document.getElementById('product_name').value;
+            const category = document.getElementById('category').value;
+            const price = document.getElementById('price').value;
+
+            const data = {
+                product_name: productName,
+                category: category,
+                price: price
+            };
+
+            try {
+                const response = await fetch('/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById('product-form').reset();
+                    toggleForm();
+                    window.location.reload();
+                    // Optionally reload the page or update the UI
+                } else {
+                    alert('Failed to add product.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        function filterProducts(event) {
+            const searchValue = event.target.value.toLowerCase();
+            const productItems = document.querySelectorAll('.product-list tbody tr');
+            productItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchValue) ? '' : 'none';
+            });
+        }
+
+        function showTotal() {
+            const productItems = document.querySelectorAll('.product-list tbody tr');
+            let total = 0;
+
+            productItems.forEach(item => {
+                if (item.style.display !== 'none') {
+                    const priceCell = item.querySelector('td:nth-child(3)');
+                    if (priceCell) {
+                        const price = parseFloat(priceCell.textContent.replace('₹', '').trim());
+                        if (!isNaN(price)) {
+                            total += price;
+                        }
+                    }
+                }
+            });
+
+            const messageBox = document.querySelector('.message-box');
+            messageBox.textContent = `Total: ₹ ${total.toFixed(2)}`;
+            messageBox.style.display = 'block';
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000); // Hide message after 5 seconds
+        }
+
+        function confirmClear() {
+            if (confirm('Are you sure you want to clear all entries?')) {
+                clearEntries();
+            }
+        }
+
+        async function clearEntries() {
+            try {
+                const response = await fetch('/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to clear entries.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="top">
+            <button onclick="toggleForm()" class="add-button">+</button>
+            <button class="add-button" style="background-color: green;" onclick="showTotal()">Total</button>
+            <button class="clear-button">Clear</button>
+        </div>
+
+        <div class="message-box"></div>
+
+        <div id="form-container" class="form-container">
+            <form id="product-form" onsubmit="submitForm(event)">
+                <div class="form-group">
+                    <label for="product_name">Enter Product Name:</label>
+                    <input type="text" id="product_name" name="product_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Select Category:</label>
+                    <select id="category" name="category" required>
+                        <option value="food">Food</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="travel">Travel Expense</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" name="price" step="0.01" required>
+                </div>
+                <button type="submit" class="submit-button">Add</button>
+            </form>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search products...">
+        </div>
+
+        <div class="product-list-container">
+            <div id="product-list" class="product-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                            <tr class="product-item">
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>₹ {{ product.price }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

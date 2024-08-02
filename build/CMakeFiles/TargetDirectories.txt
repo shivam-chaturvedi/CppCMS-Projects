@@ -1,3 +1,0 @@
-/home/shiv/WEBSERVERS-CPP/build/CMakeFiles/hello.dir
-/home/shiv/WEBSERVERS-CPP/build/CMakeFiles/edit_cache.dir
-/home/shiv/WEBSERVERS-CPP/build/CMakeFiles/rebuild_cache.dir

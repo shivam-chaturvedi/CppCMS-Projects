@@ -4,11 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>
-        Hello There
-    </h1>
+    <h1>Hello There</h1>   
+    <form method="post" id="form">
+        <label for="name">Name:</label>
+        <input id="name" placeholder="Enter Your Name:" type="text">
+        <br>
+        <label for="age">Color:</label>
+        <input id="age" placeholder="Enter your age:" type="number">
+        <br>
+        <label for="dob">DOB:</label>
+        <input id="dob" placeholder="Enter Your DOB:" type="date">
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById("form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // Collect data from the form
+            const name = document.getElementById("name").value;
+            const age = Number(document.getElementById("age").value);
+            const dob = document.getElementById("dob").value;
+
+            // Create an object to send in the request body
+            const obj = {
+                name: name,
+                age: age,
+                dob: dob
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(obj)
+                });
+
+                if (response.ok) {
+                    console.log(response.status);
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    console.error("Response not OK", response.status);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
+    </script>
+
 </body>
 </html>

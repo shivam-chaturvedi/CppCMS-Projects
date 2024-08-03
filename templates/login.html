@@ -62,7 +62,8 @@
                 const result = await response.json(); // Or response.json() if you expect JSON response
                 console.log(result); // Handle the response data
                 if (response.ok) {
-                    alert('Login successful!');
+                    // alert('Login successful!');
+                    window.location.replace("/");
                 } else {
                     // Handle errors (e.g., show error message)
                     alert('Login failed!');

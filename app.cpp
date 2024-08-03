@@ -118,7 +118,28 @@ class App :public cppcms::application{
 
     void register_user(){
         if(request().request_method()=="POST"){
+            pair<void *,int>  data=request().raw_post_data();
+            string s(static_cast<char*>(data.first),data.second);
+            stringstream ss(s);
+            cppcms::json::value json;
+            json.load(ss,true);
 
+            string name=json.get<string>("name");
+            string email=json.get<string>("email");
+            string password=json.get<string>("password");
+
+            User u;
+            int id=u.create_user(name,password,email);
+            if(id==-1){
+            response().status(400);
+            response().content_type("application/json");
+            json["msg"]="userexist";
+            response().out()<<json;
+            }
+            json["id"]=id;
+            response().status(200);
+            response().content_type("application/json");
+            response().out()<<json;
         }
         else if(request().request_method()=="GET"){
             serve_static("templates/register.html");
@@ -142,11 +163,11 @@ class App :public cppcms::application{
             string pass=json.get<string>("password");
             User u;
             if(u.validate_user(email,pass)){
-                response().out()<<"Login Success";
+                response().out()<<json;
             }
             else{
                 response().status(400);
-                response().out()<<"Login Failed";
+                response().out()<<json;
             }
 
             // response().out()<<json;

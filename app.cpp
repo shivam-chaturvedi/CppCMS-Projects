@@ -14,6 +14,9 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include<cppcms/http_file.h>
 
+#include "models.cpp"
+
+
 
 using namespace std;
 
@@ -107,9 +110,55 @@ class App :public cppcms::application{
         dispatcher().assign("/",&App::Home,this);
         dispatcher().assign("/download",&App::download,this);
         dispatcher().assign("/upload",&App::upload,this);
+        dispatcher().assign("/register",&App::register_user,this);
+        dispatcher().assign("/login",&App::login,this);
         dispatcher().assign("/css/(.+)",&App::css_handler,this,1);
         dispatcher().assign(".*",&App::not_found,this);
     }
+
+    void register_user(){
+        if(request().request_method()=="POST"){
+
+        }
+        else if(request().request_method()=="GET"){
+            serve_static("templates/register.html");
+        }
+        else{
+            response().status(400);
+            response().out()<<"invalid method";
+        }
+    }
+
+    
+    void login(){
+        if(request().request_method()=="POST"){
+            pair<void *,int> data=request().raw_post_data();
+            string s(static_cast<char*>(data.first),data.second);
+            stringstream ss(s);
+            cppcms::json::value json;
+            json.load(ss,true);
+            string email=json.get<string>("email");
+            
+            string pass=json.get<string>("password");
+            User u;
+            if(u.validate_user(email,pass)){
+                response().out()<<"Login Success";
+            }
+            else{
+                response().status(400);
+                response().out()<<"Login Failed";
+            }
+
+            // response().out()<<json;
+        }
+        else if(request().request_method()=="GET"){
+            serve_static("templates/login.html");
+        }
+        else{
+            response().out()<<"Invalid Method";
+        }
+    }
+
 
     void upload(){
        if (request().request_method() == "POST") {
